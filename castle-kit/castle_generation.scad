@@ -1,0 +1,175 @@
+/* Castle kit, Lego and Duplo compatible-- examples
+Daniel.schneider@unige.ch (DKS)
+
+VERSION 2.4 modified to reflect changes made for marble run, DKS dec 2018
+VERSION 2.x modified for usability and compatibility by DKS feb 2017
+VERSION 1.2 modified as an extension to doblo-factory v2.0 by dmtaub@cemi.org
+VERFSION 1 sept./dec 2012
+
+The doblo factory is documented here:
+http://edutechwiki.unige.ch/en/Doblo_factory
+
+Download
+http://tecfa.unige.ch/guides/3dprinting/doblo-factory/
+
+*/
+
+// *** SCALE AND LATTICE_TYPE MUST BE SET ! *** (but you can override later)
+
+SCALE=1;   // DUPLO compatible Size, partially print tested
+// SCALE =0.5;   // Lego compatible size, print tested
+// SCALE=0.25; // Tiny size ( not print tested)
+
+LATTICE_TYPE = 3; // more solid underneath pattern that requires a perfect slicer. Otherwise go for type 1.
+// 0 means none,
+// 1 means more spacing (same as nibbles underneath),
+// 2 means denser, i.e. more beams
+// 3 means a full lattice grid that extends down the floor (ugly but more stable)
+
+// Fix larger than specified outer walls. Both slicers and FDM printers make objects larger than they should be. You can reduce width and length to cheat around this, but it's a bit experimental as of 2019.
+SHAVE = 0.2;
+
+// Other constants. See the lib/*-params-*.scad files
+
+// LOAD doblo factory
+include <../doblo-factory.scad>;
+
+// OVERRIDES of the configuration file - you should rather create a new config file :)
+function NB_RADIUS(SCALE)  = (SCALE < 0.6) ? (4.9 / 2 * LEGO_SCALE(SCALE)) : (9.5 / 2.0 * SCALE);  // For creating duplos with simplify3D, real duplo size is 9.35 :(
+echo (str("Override - NB_DIAMETER=", 2*NB_RADIUS(SCALE)));
+
+// LOAD castle kit extension. It sits in the same directory
+include <castle-kit-2-3.scad>;
+
+// One can override global scale for a single model, thus combining scales, for example:
+// tower_lugobase(scale=0.25); 
+// tower_lugobase(scale=0.5);  
+
+// Large scale examples (not really for printing)
+// large_example (); 
+// large_example (scale=0.25);
+// large_example (scale=DUPLO); // too much for openscad in standard resolution
+
+echo (str ("<font color='green'> Configuration:</font> LATTICE TYPE = ", LATTICE_TYPE));
+echo (str ("<font color='green'> Configuration:</font> LATTICE WIDTH = ", LATTICE_WIDTH(SCALE)));	
+echo (str ("<font color='green'> Configuration:</font> SCALE = ", SCALE));
+echo (str ("<font color='green'> Configuration:</font> DOBLO WALL = ", DOBLOWALL(SCALE),"mm"));
+echo (str ("<font color='green'> Configuration:</font> BOTTOM nibble DIAMETER = ", 2*NB_BOTTOM_RADIUS(SCALE) ,"mm"));
+echo (str ("<font color='green'> Configuration:</font> Top nibble DIAMETER = ", 2* NB_RADIUS(SCALE) ,"mm"));
+echo (str ("<font color='green'> Configuration: --- have fun, adjust params in ../lib/*-param-* file --- "));
+
+// ----------------  Execute models. Uncomment only one
+
+// --- vertical scales - get an idea how heights are working
+// vert_scale ();
+// vert_scale_full ();
+// man_scale ();
+
+// --- simple brick for calibrating doblo-factory params
+// color ("orange") calibration();
+
+// --- reference model for height
+// translate([100,0,0]) { tower (); }
+
+// --- simple plates
+// base ();                    // --- simple 8x8 base with partly empty floor
+// base_16 ();                 // --- simple 16x16 base with partly empty floor, must have
+// base_24 ();                 // --- For the ambitious, full 24x24 plate, THIRD height
+// base_lugobase ();            // --- simple 8x8 stackable base with partly empty floor
+
+// --- square tower
+// tower();                     // --- 8x8 Tower
+// tower_16();                  // --- 8x8 Tower sitting on a 16x16 base plate, must have
+// tower_lugobase();            // --- tower
+// tower_stackable();            // --- tower, must have
+
+// --- fairly ugly corner tower 
+// corner_tower ();             // --- Corner with tower inside
+// corner_tower_lugobase ();      // --- Corner with tower inside
+// corner_tower_stackable ();      // --- Corner with tower inside
+
+// --- round tower
+// tower_round();               // --- 8x8 round Tower
+// tower_round_16();            // --- 8x8 round Tower  on 16x16 plate
+// tower_round_lugobase();      // --- round tower
+tower_round_stackable();      // --- round tower, must have - Lydie
+
+// --- round tower square
+// tower_round_square();        // --- 8x8 round Tower
+// tower_round_square_16();        // --- 8x8 round Tower on 16x16 plate
+// tower_round_square_lugobase();  // --- 8x8 round Tower
+// tower_round_square_stackable();  // --- 8x8 round Tower, must have
+// tower_round_square_element();    // --- like above, but stacking on itself looks better
+
+// --- dungeon
+// dungeon ();
+// dungeon_stackable ();
+
+// --- wizard tower
+// wizard_tower ();             // --- 6x6 small round tower with texture
+// wizard_tower_lugobase ();    // --- tower, must have
+// wizard_tower_stackable ();    // --- tower, must have
+
+// --- stackable tower/house elements
+
+// tower_floor_stackable ();    // --- stackable floor with pillars underneath
+// pillars_lugobase ();         // --- stackable floor with pillars on top
+// pillars_stackable ();        // --- two pillars connected at bottom
+// pillars_round_stackable ();  // --- round ones
+// tower_roof_lugobase ();      // --- anti-rain measures, lots of overhangs
+
+// --- gatehouse tower
+
+// gatehouse_tower ();
+// gatehouse_tower_stackable ();
+
+// --- walls 
+// wall_8x8 ();                 // --- Very simple wall on plate, sturdy
+// wall_lugobase ();            // --- Very simple wall on lugo feet , sturdy
+// wall_stackable ();            // --- Very simple wall (a big lugo brick)
+// wall_thin_8x8 ();            // --- Simple wall on plate
+// wall_thin_lugobase ();       // --- Simple wall on lugo feet
+// wall_thin_16x16 ();             // --- Simple wall on a 16x16 plate
+// wall_thin_16_8 ();           // --- Simple wall on a 16x8 plate
+// wall_stairs_16_8 ();         // --- Wall and stairs on a 16x8 plate
+// wall_stairs_stackable ();     // --- Wall and stairs 16 long
+// wall_stairs_16_16 ();        // --- Wall and stairs on a 16x8 plate
+// portal_8x8 ();               // --- Portal on a 8x8 plate, a wall with a "door"
+// portal_8x8_lugobase ();         // --- Portal on a 8x8 plate, a wall with a "door"
+// portal_stackable ();         // --- Portal on lugo feet, a wall with a "door"
+
+// ---- corners
+// corner_8x8 ();                   // --- Corner, two simple walls, ugly
+// corner_stackable ();          // --- Corner, two simple walls, ugly
+// corner_thin_8x8 ();              // --- Corner, two walls, thinner and nicer
+// corner_thin_stackable ();     // --- Corner, two walls, thinner
+// corner_thin_16 ();           // --- Corner on 16x16 basis
+
+// --- other objects
+
+// pool ();                     // --- pool, jacuzzi-style on base plate
+// pool_lugobase ();            // --- stackable pool, jacuzzi-style, must have
+// pool_stackable ();            // --- stackable pool, jacuzzi-style, must have 
+// large_example ();            // --- a large glued layout
+
+// --- some ordinary Lego/Duplo compatible bricks
+// bricks ();                   // --- collection of bricks 1
+// bricks_flat ();              // --- collection of bricks 2    
+// wall_connector () ;          // --- connect towers on top or for stacking
+
+// --------------- simple bricks and tests -------------
+
+//         (col, row, up, width, length, height, scale) 
+// house_lr   (-5, -1,  0,  10,    3,     3*FULL, SCALE) ;
+// house_fb   (-5, -1,  0,  3,    10,     3*FULL, SCALE) ;
+// doblo   (0,   -5,   0,   4,   2,    3*FULL,  false, false, SCALE );	
+// color("red") doblo   (0,   6,   0,   4,   2,    FULL,  true, false, SCALE );
+// color("red") doblo   (0,   0,   0,   2,   2,    FULL,  true, false, DOBLO );
+// color("green") doblo   (0,   5,   0,   2,   2,    FULL,  true, false, LUGO );
+// color("pink") doblo   (0,   5,   0,   2,   2,    THIRD,  true, false, 0.5 );
+// color("yellow") doblo   (0,   3,   0,   4,   4,   2*THIRD,  true, false, SCALE );
+// doblo   (0,   0,   0,   2,   2,    2*THIRD,  false, false, SCALE );	
+// color("blue")  doblo (-8,  4,   0,   4,   4,    THIRD,  false, false , scale=SCALE);
+// flat leg<obase plate
+// doblo  (-4,  -4,   0,  8,   8,   THIRD,   false, scale=SCALE);
+// base_plate (width=16, length=16, nibbles_on_off=true);

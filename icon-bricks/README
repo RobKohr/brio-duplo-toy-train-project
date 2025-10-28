@@ -1,0 +1,10 @@
+Copyright (c) 2017/2018 Daniel K. Schneider
+ 
+ALSO read file ../README (it includes information about calibration)
+and http://edutechwiki.unige.ch/en/Doblo_factory
+
+This directory includes:
+
+- A_icon_brick.scad program to generate 4x4 Lego compatibles with icons and/or text on top. Open this file for more informations and instructions.
+- Sample icons from the noun project. Please cite the original authors if you reuse one (see the "scad" file for credits)
+

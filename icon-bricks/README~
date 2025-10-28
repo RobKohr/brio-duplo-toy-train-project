@@ -1,0 +1,24 @@
+This directory includes:
+
+ Copyright (c) 2017/2018 Daniel K. Schneider
+ 
+ This file is part of DobloFactory VERSION 2.4
+
+Read file README and http://edutechwiki.unige.ch/en/Doblo_factory
+
+ DobloFactory is free source: you can redistribute it and/or modify
+    modify it under the terms of the CC BY-NC-SA 3.0 License:
+    CreativeCommons Attribution-NonCommerical-ShareAlike 3.0
+    as published by Creative Commons. 
+
+    You should have received a copy of the CC BY-NC-SA 3.0 License 
+    with this source package. 
+    If not, see <http://creativecommons.org/licenses/by-nc-sa/3.0/>
+*/
+
+// You may change this include based on printer types
+// include <lib/doblo-params.scad>; // uses (mostly) CORRECT REAL VALUES, will not work well with FDM slicers and technology.
+
+
+- A_icon_brick.scad program to generate 4x4 Lego compatibles with icons and/or text on top
+- Sample icons from the noun project. Please cite the original authors if you reuse one (see the "scad" file for credits)

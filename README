@@ -1,0 +1,114 @@
+Copyright (c) 2019 Daniel K. Schneider
+Copyright (c) 2018 Daniel K. Schneider
+Copyright (c) 2017 Daniel K. Schneider and Daniel M. Taub
+Copyright (c) 2013 Daniel M. Taub
+Copyright (c) 2010 Daniel K. Schneider
+
+Version 2.4
+
+This file is part of DobloFactory.
+DOBLO: DUPLO-compatible scenery factory
+
+DobloFactory is free source: you can redistribute it and/or modify
+    modify it under the terms of the CC BY-NC-SA 3.0 License:
+    CreativeCommons Attribution-NonCommerical-ShareAlike 3.0
+    as published by Creative Commons. 
+
+    You should have received a copy of the CC BY-NC-SA 3.0 License 
+    with this source package. 
+    If not, see <http://creativecommons.org/licenses/by-nc-sa/3.0/>
+
+NOTICE: THIS FILE MAY BE OUT OF DATE 
+examples/test-foo.scad files are good documentation for library components.
+
+Getting started: Open an example file in the example directory or read some documentation.
+
+Documentation (concepts, OpenScad modules, simple examples)
+ http://edutechwiki.unige.ch/en/Doblo_factory
+
+Download Version 2.4:
+- An archive can be found at:
+http://tecfa.unige.ch/guides/3dprinting/doblo-factory/
+
+Download Version 2.3:
+- An archive can be found at:
+http://tecfa.unige.ch/guides/3dprinting/doblo-factory/
+
+Download Version 2.2:
+- An archive can be found at:
+http://tecfa.unige.ch/guides/3dprinting/doblo-factory/
+
+Download Version 2.1:
+- https://github.com/dmtaub/DobloFactory
+
+Version 1 (deprecated !) Download:
+- http://www.thingiverse.com/thing:2106
+
+BUGS, missing pieces, other things to do:
+- cyl_block nibbles can't handle top_r < 2 and rational numbers
+- a pilar with both supports for bottom and top (i.e. 2x4 directions)
+- replace support by triangle_forward, triangle_right, etc.
+- test STL merging with both Lego models
+
+Authors:
+- Original version 1 by Daniel K. Schneider, TECFA, University of Geneva, March 2010
+- refactored version 2 by Daniel M. Taub, CEMI.org, October 2012, January 2013
+- minor changes versions 2.2 and 2.3 by Daniel K. Schneider, TECFA, University of Geneva, Feb 2017/Dec 2018
+- based on parametric lego duplo (http://www.thingiverse.com/thing:1778) by Domonoky
+- based on OpenSCAD Bitmap Fonts Module (http://www.thingiverse.com/thing:2054) by Tony Buser.
+
+This code is derived from two original works: 
+1) Domonoky's parametric lego duplo - http://www.thingiverse.com/thing:1778. 
+  I got the idea, and then kept some of the fine parts (nibbles, walls, etc,)
+2) Tony Buser's OpenSCAD Bitmap Fonts Module - http://www.thingiverse.com/thing:2054
+
+Legal disclaimer: 
+- This is nor Duplo(TM) nor Lego(TM) nor Nano (TM). 
+The bricks are called Doblo or Lugo and to fit Duplo (TM) and Lego (TM) and Nano (TM) more or less.
+
+Purposes:
+ - Creation of 3D duplo-compatible "play" boards for various purposes from Kindergarten to Master level
+ - Introduction to 3D environnment (learn about positions) and use of OpenSCAD
+ - "End-user 3D programming" environment (e.g. students could add other primitives)
+
+Coordinate system and units:
+
+Software needed:
+- http://openscad.org/
+- http://en.wikibooks.org/wiki/OpenSCAD_User_Manual
+Once you installed openscad, then you may have a glance at the manual. Otherwise, just know this:
+ - To compile a .scad file (see the result)
+   1. Menu: File->Open
+   2. menu: Design->Compile
+ - To render for real and to export
+   1. menu: Design-> Compile and Render (CGAL) .... this can take many minutes.
+   2. menu: Design-> Export as .STL 
+
+Usage:
+ (1) Create a new .scad file or start from doblo-factory-examples.scad
+ (2) Import this file:
+     include doblo-factory.scad
+ (3) Set the SCALE and LATTICE_TYPE variables (!)
+ (4) Then, either write custom modules to create any combinations of
+ block forms and imported STL or use the merge_brick standard module
+ to pile up 3 objects: a doblo, a block and one imported STL
+
+ See examples files in the top-level directory or the more ambitious projects in the ext directory
+
+Printing:
+ - To print larger structures be aware of warping. For ABS, use a draft and glue, for PLA you could use some glue for wide structures.
+  
+ - If you need good DUPLO/LEGO compatibility, you will have to print with 0.25 (or smaller) layers !
+ - Large structures can take many hours to print. 
+
+To create your own more complex custom shapes, there are several modules (functions). For example:
+
+(1) The doblo brick. 
+Typically, to create a Duplo or Lego compatible block use the doblo function:
+
+module doblo (col, row, up, width,length,height,nibbles_on_off,scale) 
+
+For more documentation there is an online manual:
+
+http://edutechwiki.unige.ch/en/Doblo_factory
+

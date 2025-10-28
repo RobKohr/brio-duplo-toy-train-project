@@ -1,0 +1,1239 @@
+/* Marble run kit, Lego and duplo compatible
+   Daniel.schneider@unige.ch
+   dec. 2018
+
+   Version 0.9
+   - basic modules work
+
+   Instructions:
+   - print calibration first. If the piece doesn't fit, then act, i.e. cope with it or adjust the doblo-factory-x-y parameters in the lib directory.
+   - print a chosen module by uncommenting (see below)
+
+   You will have to find 1cm marbles for Lego compatibles. I recommend 10mm steel balls (about 1$/€ per ball). Marble balls are usually bigger (1.6mm). For the Duplo compatibles you either can buy 20mm steel balls or use standard 16mm glass marbles. Steel balls are cheap on AliExpress.
+
+   Basic parameters are below. If you change these, most elements will adjust correctly, but some won't, i.e. need some manual adjustment. Parameters are different for Lego and Duplo compatibles. Legos work in "third" sizes and Duplos in "half". Length below are not absolute heights, but just length as defined in our Lego conventions. Therefore, they must be multiplied with either PART_WIDTH or PART_HEIGHT if you do some openscad coding. See more here:
+   https://edutechwiki.unige.ch/en/Doblo_factory
+*/
+
+// SCALE MUST BE set, although one can override it using the LUGO (0.5) and DOBLO (1) constants.
+// PART_WIDTH(SCALE)  is 8mm for Lego and 16mm for duplo compatible
+
+SCALE =0.5;   // Lego size, print tested
+// SCALE =1;   // Duplo size, less tested
+// Overrides
+LATTICE_TYPE   = 3;  // type 3 extends lattice to bottom (more solid, but may need force to fit)
+SHAVE = 0.1 // Shave the outer wall (provide smaller, wrong width and length) to fix extra plastic added by most slicers.
+
+// LOAD doblo factory
+include <../doblo-factory.scad>;
+
+// Castle kit constants, some could be reused here
+UNIT = (SCALE < 0.6) ? THIRD : HALF; // Lego vs. Duplo small height units
+BASE_HEIGHT  = (SCALE < 0.6) ? 2*THIRD : HALF;  // Height of the base plaform.
+FLOOR_TOP    = 8*FULL;  // Height of the first floor, e.g. nibbles go here
+FLOOR_BOTTOM = FLOOR_TOP-UNIT;  // bottom of a floor
+WALL_TOP     = 10*FULL;            // e.g. nibbles go here
+WALL_BOTTOM  = WALL_TOP-BASE_HEIGHT; // this is wall_top - the base plate height
+INNER_WALL_TOP = FLOOR_BOTTOM - BASE_HEIGHT;  // e.g. inside of walls, needs a BASE_HEIGHT on top
+
+NUDGE = 0.001;
+
+// marble run specific constants
+// TUBE_WALL_WIDTH is 2mm for Lego compatible and 2.4 mm for duplo compatible.
+function TUBE_WALL_RATIO(SCALE) = (SCALE < 0.6) ? 0.25 : 0.15 ; // use with doblo(), block() etc.
+function TUBE_WALL_WIDTH(SCALE) = PART_WIDTH(SCALE) * TUBE_WALL_RATIO(SCALE) ; // in mm
+
+// Height of the stackable base plate. 1*THIRD can be difficult to print for lego compatibles
+// Turn into a function for more flexibility ?
+BOTTOM_HEIGHT = (SCALE < 0.6) ? 2*THIRD : HALF; // Lego vs. Duplo, same as base height in castle kit.
+
+echo (str ("SCALE = ", SCALE));
+echo (str ("BOTTOM_HEIGHT = ", BOTTOM_HEIGHT));
+echo (str ("LATTICE-WIDTH = ", LATTICE_WIDTH(SCALE)));	
+echo (str ("TUBE_WALL_WIDTH = ", TUBE_WALL_WIDTH(SCALE)));
+echo (str ("TUBE_WALL_RATIO = ", TUBE_WALL_RATIO(SCALE)));
+
+
+/* ----------------------------------------- Testing blocks and sets
+Execute models. Uncomment only one
+*/
+
+// calibration (row=0, col=0, width=2, length=4, height=2*THIRD, scale=SCALE);
+
+module calibration (row=0, col=0, width=2, length=4, height=2*THIRD, scale=SCALE) {
+     /* --- simple 4x2 lego brick sitting in the center for calibration / test
+	If the piece does not fit, you either can play with slicer settings or change the code (preferred).
+	(1) Slicer settings: If the piece is too loose, change wall settings to fatter in your slicer. If the piece does not fit, try smaller walls in your slicer, e.g. 2 /wall. Some slicer refuse to print small Lego walls (e.g. most versions of Cura). Use another slicer
+	(2) If the above does not help then figure out your own parameters. Copy ../lib/doblo-params.scad, make changes and replace the link in file ../doblo-factory.scad on top
+	By default include we use a setting that makes walls and nibbles underneath smaller than they are in realy. This was the only to make it work with the free RepetierHost/Cura combo.
+
+	<lib/doblo-params-felixtec4.scad>; // A modern fast PLA printer, slightly smaller walls.
+ */
+     //     (col, row, up, width,length,height,nibbles_on_off) 
+     doblo   (row=row, col=col, width=width, length=length, height=height);
+}
+
+// blocks_set ();
+module blocks_set () {
+     /* A set of useful Lego or Duplo compatible blocks. We suggest printing without reinforced bottom lattice*/
+     LATTICE_TYPE    = 2; 
+     myscale = DOBLO; // Change to LUGO for Lego compat
+     doblo   (col=4, row=7, up=0, width=2, length=2, height=HALF, scale=myscale);
+     doblo   (col=4, row=4, up=0, width=2, length=2, height=HALF, scale=myscale);
+     doblo   (col=4, row=1, up=0, width=2, length=2, height=HALF, scale=myscale);
+     doblo   (col=4, row=-2, up=0, width=2, length=2, height=THIRD, scale=myscale);
+     doblo   (col=1, row=-2, up=0, width=2, length=10, height=HALF, scale=myscale);
+     doblo   (col=-2, row=-2, up=0, width=2, length=2, height=3*FULL, scale=myscale);
+     doblo   (col=-2, row=1, up=0, width=2, length=2, height=3*FULL, scale=myscale);
+     doblo   (col=-2, row=4, up=0, width=2, length=4, height=HALF, scale=myscale);
+}
+
+
+// This is a kind of scale
+stairways_scale ();
+module stairways_scale () {
+     myscale = DOBLO;
+     row = 2;
+     doblo   (row,   7,   0,   2,   1,   0,  true, false, scale=myscale, id="10" );
+     doblo   (row,   6,   0,   2,   1,   THIRD,  true, false, scale=myscale, id="12" );
+     doblo   (row,   5,   0,   2,   1,   2*THIRD,  true, false, scale=myscale, id="13" );
+     color ("red") doblo   (row,   4,   0,   2,   1,   FULL,  true, false, scale=myscale, id="14" );
+     doblo   (row,   3,   0,   2,   1,   FULL+THIRD,  true, false, scale=myscale,  id="15" );
+     doblo   (row,   2,   0,   2,   1,   FULL+2*THIRD,  true, false, scale=myscale,  id="16" );
+     color ("red") doblo   (row,   1,   0,   2,   1,   2*FULL,  true, false, scale=myscale,  id="17" );
+     doblo   (row,   0,   0,   2,   1,   2*FULL+THIRD,  true, false, scale=myscale,  id="18" );
+}
+
+// curve (col=3, angle=180, closure=7, support_height=7, up=0);
+// track (col=-3, row=0, up=0, length=8,  width=2, closure=5, orientation=0);
+
+// flat_ex1 ();
+module flat_ex1 () {
+// test tracks
+// myScale = DOBLO;
+     myScale = LUGO;
+// track (col=-6, row=0, up=0, length=2,  width=2, closure=5, support_height=2, orientation=0, scale = myScale);
+     
+     curve (col=2.5, angle=180, closure=7, support_height=7, up=0,  scale = myScale, id="27");
+     curve (col=2.5, row=4.5, angle=90, closure=7, up=0,  scale = myScale, id="27", nibbles_on_off=true);
+     curve_wide (col=5, angle=180, closure= 7, scale = myScale, id="28");
+     hole (col=-5, row=2.5, closure=7, width=2, length=6, id="hole A", scale = myScale, nibbles_on_off=true, id="29");
+     hole (col=2.5, row=-2.5, closure=7, width=6, length=2, id="hole B", scale = myScale, nibbles_on_off=true, id="29");
+     track (col=-2.5, row=-2.5, up=0, length=2,  width=2, closure=4, support_height=2, orientation=0,  scale = myScale, id="23");
+     track (col=-2.5, row=0, up=0, length=6,  width=2, closure=5, orientation=0,  scale = myScale, id="24");
+     track (col=-2.5, row=6.5, up=0, length=2,  width=2, closure=5, orientation=0,  scale = myScale, id="25");
+     track (col=-5, row=-0, up=0, length=2,  width=2, closure=10, orientation=0,  scale = myScale, id="21" );
+     track (col=0, row=-2.5, up=0, length=2,  width=2, closure=8, orientation=0,  scale = myScale, id="22");
+}
+
+
+// test
+// slope (col=-8, row=0, up=0, length=8,  width=2, support_height=0, closure=5, height_start=4*FULL,orientation=0, scale=LUGO, id="31", bridges=true); // this is for doblo, lego does not have half bricks
+
+
+module slope_ex1 () {
+     // test tracks
+     // myScale = DOBLO;
+     myScale = DOBLO;
+     // track (col=-6, row=0, up=0, length=2,  width=2, closure=5, support_height=2, orientation=0, scale = myScale);
+     
+     curved_slope (col=2.5, angle=180, height_start=2*FULL, curve_radius=2, closure=6, orientation=0, bridges=true, scale=myScale);
+     slope (col=0, row=0, up=0, length=4,  width=2, closure=5, height_start=FULL,orientation=0,  scale = myScale, id="26");
+     slope (col=0, row=4.5, up=0, length=4,  width=2, support_height=2, closure=5, height_start=HALF,orientation=0, scale=myScale, id="30"); // this is for doblo, lego does not have half bricks
+     slope (col=-2.5, row=0, up=0, length=7,  width=2, support_height=0, closure=5, height_start=4*FULL,orientation=0, scale=myScale, id="31", bridges=true); // this is for doblo, lego does not have half bricks
+     slope (col=-8, row=0, up=0, length=7,  width=2, support_height=0, closure=5, height_start=4*FULL,orientation=0, scale=LUGO, id="31", bridges=true); // this is for doblo, lego does not have half bricks
+     slope (col=-5, row=-2.5, up=0, length=2,  width=2, closure=5, height_start=FULL,orientation=0, scale=myScale, id="30"); // this is for doblo, lego does not have half bricks
+     
+}
+
+// combination
+module combi_ex1 () {
+     doblo           (col=-12, row=-2, height=THIRD, length=2,  width=2, nibbles_on_off=false, scale = DOBLO);
+     doblo           (col=-12, row=-2, up=THIRD, height=4*THIRD, length=2,  width=2, nibbles_on_off=false );
+     track_component (col=-12, row=-2, up=5*THIRD, length=2,  width=2, closure=10, orientation=0);
+     slope (col=-12, row=0, up=0, length=6,  width=2, closure=5, height_start=FULL, support_height=1, orientation=0);
+     track (col=-12, row=6, up=0, length=2,  width=2, closure=5, orientation=0);
+     track (col=-12, row=8, up=0, length=2,  width=2, closure=5, support_height=1, orientation=0);
+}
+
+// ball. by default it includes a hand made brim that should stabilize the pring
+
+// marble_ball (brim=true);
+module marble_ball (brim=true) {
+     r = 10;  // 2cm ball. 
+     translate ([0,0,r])
+	  sphere (r, $fs=0.1, $fa=2); // high poly
+     // sphere (r, $fn=200); // high poly
+     // If false, print with a large brim (skirt) and reduce speed.
+     if (brim)
+	  
+	  difference () {
+	       cylinder (r=r*1,h=5);
+	       translate ([0,0,r*1])
+		    sphere (r*1+0.4, $fs=0.1, $fa=2); // high poly
+	  }
+}
+
+// Random stuff below
+
+
+// slope (col=-8, row=0, up=0, length=6,  width=2, closure=5, bottom_height=THIRD, height_start=2*FULL,orientation=0);
+// test raw slope
+// slope_component (col=-12, row=0, up=0, length=6, width=2, closure=5, height_start=FULL,orientation=0);
+
+// raw pipe
+// pipe_sloped_0 ();
+// pipe_0 ();
+
+// doblo   (-8,   0,   0,   2,   6,    THIRD,  true, false, orientation=0 );
+// color ("green") doblo   (-4,   -4,   0,   2,   6,    THIRD,  true, false, orientation=45 );
+// color ("blue") doblo   (-4,   -4,   0,   2,   6,    THIRD,  true, false, orientation=60 );
+// color ("grey") doblo   (-4,   -4,   0,   2,   6,    THIRD,  true, false, orientation=90 );
+// color ("red") block   (col=-4, row=-4, up=0, width=2, length=6, height=THIRD, orientation=270 );
+
+
+/* ----------------------------------------- Tracing 
+ */
+
+MARBLE_TRACE = true;
+MARBLE_DEBUG = true;
+
+module trace_msg (type="marble run block", text="created", id="undef") {
+     /* Trace block creation with a console message, works best when you give each element an id.
+	*/
+
+     if ((MARBLE_TRACE == true) || (TRACE == true)) {
+	  echo (str ("<font color='blue'>MARBLE RUN element</font> ", type, ", id= ", id, " : ", text));
+     }
+}
+
+module debug_msg (stri) {
+     if (MARBLE_DEBUG || DEBUG) { echo (str( " - ", stri)) ;}
+}
+
+
+/* Tracks and straight slopes **************************************************** */
+/* ----------------------------------------- track ---------------------------------
+
+This element includes:
+- a lego/duplo compatible bottom element
+- a block on top of that
+- a straight track embedded into this block
+ */
+
+// track (scale=LUGO);
+// track (scale=LUGO, orientation=90);
+// track (col=4,scale=DOBLO);
+
+module track (col=0, row=0, up=0, length=4, width=2, closure=5, orientation=0, bottom_height=BOTTOM_HEIGHT, support_height=0, scale=LUGO, id="some track") {
+     /* The track element will be placed along the y axis (back/forth)
+	In the doblo system: width= left/right length, length= forth/back length
+	The tube is embedded in block that sits on a doblo block without nibbles.
+	Instead of just digging a hole into a block we create a real tube, allowing for some subtler support structures some day
+	Orientation is a bit messy since it has to happen within the doblo components
+	Params
+	- closure is a value between 2 and 12 and it defines the height of block that will shave off the tube
+	- bottom_height is the height of the block underneath the tube, e.g. the lego/duplo compatible
+	*/
+     trace_msg (type="track", id= id);
+     // position a lego/duplo compatible block
+     color ("Aqua") doblo (col=col, row=row, up=up, width=width, length=length, height=bottom_height, nibbles_on_off=false,diamonds_on_off=false,scale=scale,orientation=orientation) ;
+     // Add an tube embedded in a block on top
+     track_component (col=col, row=row, up=up+bottom_height, length=length, width=width, closure=closure, orientation=orientation, support_height=support_height, scale=scale);
+
+     // add nibbles on top if closure is big
+     if (closure > 9) nibbles (col=col, row=row, up=bottom_height+closure, width=2, length=2, scale=scale);
+
+}
+
+// track_component (scale=LUGO, orientation=0);
+//  track_component (scale=LUGO, orientation=90);
+// track_component (col=0, scale=LUGO, orientation=180, length=2);
+// track_component (row = 1, scale=LUGO, orientation=270, length=2);
+// track_component (row = 6, scale=LUGO, orientation=90, length=4);
+// track_component (col=-7, row=-2, up=8, length=2,  width=2, closure=5, orientation=0);
+// track_component (col=-7, row=4, up=0, length=2,  width=2, closure=5, orientation=0);
+
+module track_component (col=0, row=0, up=0, length=4, width=2, closure=5, orientation=0, support_height=0, scale=LUGO) {
+     /* The track element will be placed along the y axis (back/forth)
+	In the doblo system: width= left/right length, length= forth/back length
+	The tube is embedded in a block that allows creating playmobile like structures, or just printing it.
+	Params
+	- closure is a value between 2 and 12 and it defines the height of block that will shave off the tube
+	*/
+
+     // the block that supports the tube has the same size unless support_height is set.
+     upper_block_h = (support_height > 0) ? support_height : closure;
+
+     // rotation is done HERE, and not within blocks and pipes
+     rotate_about_z (angle=orientation, point=[col*PART_WIDTH(scale),-row*PART_WIDTH(scale)]) {
+
+	  // prepare the bed
+	  difference () {
+	       color("Aquamarine") block (col=col, row=row, up=up, width=width, length=length, height=upper_block_h,
+					  nibbles_on_off=false, diamonds_on_off=false, scale=scale, orientation=0) ;
+	       // dig
+	       pipe_rod (col=col, row=row-1, up=up, width=width, length=length+2, height_start=0, orientation=0, scale=scale);
+	  }
+	  // lay the pipe
+	  pipe (col=col, row=row, up=up, width=width, length=length, height_start=0, closure=closure, orientation=0, scale=scale);
+     }
+}
+
+
+/* -----------------------------------------slope track --------------------------------- */
+
+// has extra params. Could be combined with flat track
+
+
+// slope (scale=LUGO);
+// slope (col=- 4, row=6, length=10, height_start=4*FULL, scale=LUGO);
+// slope (col=2, row=4, up=0, length=4,  width=2, closure=5, height_start=FULL, orientation=0, scale=DOBLO, bridges=true);
+// track (scale=DOBLO);
+// slope (col=0, row=0, up=0, length=8,  width=2, closure=5, height_start=FULL,orientation=0, scale = DOBLO, bridges=true);
+
+module slope (col=0, row=0, up=0, width=2, length=4, bottom_height=BOTTOM_HEIGHT, height_start=FULL, support_height=0, closure=5, orientation=0, scale=LUGO,  id="some slope", bridges=false) {
+     // The slope element will be placed along the y axis (back/forth), higher end in back
+     // In the doblo system: width= left/right length, length= forth/back length
+     // height_start should use Lego scale values, i.e. THIRD, FULL (aka 2,6)
+     // closure is a value between 2 and 6
+
+     trace_msg (type="slope", id= id);
+     // position a doblo block
+     color ("Magenta") doblo (col=col, row=row, up=up, width=width,length=length,height=bottom_height,
+	    nibbles_on_off=false,diamonds_on_off=false,scale=scale,orientation=orientation) ;
+     // add the slope component, move it up to sit on the bottom_height block
+     slope_component (col=col, row=row, up=up+bottom_height, length=length, width=width, height_start=height_start, support_height=support_height, closure=closure, orientation=orientation, scale=scale, bridges=bridges);
+}
+
+// slope_component (col=-3);
+module slope_component (col=0, row=0, up=0, width=2, length=4, height_start=FULL, support_height=0, closure=5, orientation=0, scale=LUGO, bridges=false) {
+     // The slope element will be placed along the y axis (back/forth), higher end in back
+     // In the doblo system: width= left/right length, length= forth/back length
+     // height_start should use Lego scale values, i.e. THIRD, FULL (aka 2,6)
+     // closure is a value between 2 and 6
+     
+     // doblo + block block heights
+     upper_block_h = (support_height > 0) ? support_height : closure;
+     spacing = (scale==LUGO ? 1 : 1);
+     pillar_l = (scale==LUGO ? 0.5 : 0.5);
+     end = (scale==LUGO ? 2 : 2);
+     // prepare the bed
+     difference () {
+	  union () {
+	    if (bridges)
+	      difference () {
+		color ("lightpink") block (col=col, row=row, up=up, width=width, length=length, height=upper_block_h, nibbles_on_off=false, diamonds_on_off=false, scale=scale, orientation=orientation) ;
+	   for (i = [-0.5 : spacing : length-end]) {
+		block (col=col-0.5, row=row+i+spacing+NUDGE, up=up-1, length=pillar_l, width=width+1, height=height_start*2, scale=scale);
+		}		
+	      }
+	    else
+	      color ("pink") block (col=col, row=row, up=up, width=width, length=length, height=upper_block_h, nibbles_on_off=false, diamonds_on_off=false, scale=scale, orientation=orientation) ;
+	    color ("hotpink") triangle_block (col=col, row=row, up=up+upper_block_h, width=width, length=length, height_start = height_start, scale=scale,orientation=orientation, bridges=bridges) ;
+	  }
+          // dig a hole.
+	  pipe_rod (col=col, row=row, up=up, width=width, length=length, height_start = height_start, orientation=orientation, scale=scale);
+     }
+     // lay the pipe     
+     pipe (col=col, row=row, up=up, width=width, length=length, height_start=height_start, closure=closure, orientation=orientation, scale=scale);
+}
+
+
+/* ------- triangle for slope  ------ */
+
+// triangle_block (bridges=true,length=8,start_height=2*FULL);
+// triangle_block (up=0, bridges=true,length=8,start_height=4*FULL,scale=DOBLO);
+// triangle_block (up=0, col=-4, bridges=true,length=8,start_height=4*FULL,scale=LUGO);
+
+module triangle_block (col=0, row=0, up=2*BOTTOM_HEIGHT, width=2, length=4, height_start = THIRD, scale=LUGO, orientation=0, bridges=false) {
+     /* Computes a sloping block that will sit on top of the block and hold the pipe
+	ToDO:
+ - verify rotation
+
+ */ 
+     corners = [[0,0], [length*PART_WIDTH(scale),0], [length*PART_WIDTH(scale),height_start*PART_HEIGHT(scale)]];
+     x_0 = col    * PART_WIDTH(scale);
+     y_0 = -row * PART_WIDTH(scale) ;
+     z_0 = up     * PART_HEIGHT(scale);
+     // rotation (optional)
+     rotate_about_z (angle=orientation, point=[col*PART_WIDTH(scale),-row*PART_WIDTH(scale)]) // row is inverted
+
+       // doblo position
+       translate ([x_0, y_0, z_0]) {
+       
+       if (bridges==false) {
+	 // translation to fix pos after rotation
+	 translate ([0,-length*PART_WIDTH(scale),0])
+	   rotate ([90,0,90])
+	   linear_extrude (height=width*PART_WIDTH(scale))  polygon (corners);
+       }
+       else {
+	 difference () {
+	   translate ([0,-length*PART_WIDTH(scale),0]) {
+	     rotate ([90,0,90])
+	       linear_extrude (height=width*PART_WIDTH(scale))  polygon (corners);
+	   }
+	   // insert a series of blocks in the y direction. Make sure that there is an end.
+	   spacing = (scale==LUGO ? 1 : 1);
+	   pillar_l = (scale==LUGO ? 0.5 : 0.5);
+	   for (i = [-0.5 : spacing : length-2]) {
+		block (col=-0.5, row=i+spacing-NUDGE, up=-1, length=pillar_l, width=width+1, height=height_start*2, scale=scale);
+	   }
+	 }
+       }
+     }
+}
+
+
+/* -----------------------------------low level flat or sloped pipe
+used by slope component
+*/
+
+
+module pipe (col=0, row=0, up=0, width=2, length=4, height_start=0, closure=5, scale=LUGO, orientation=0,  id="some pipe") {
+     /* The pipe sits on Z=0 along the y-axis (in rotation position = 0)
+	To position it with respect to a doblo block, use the up parameter (thirds)
+	If used to embed, use the pipe_rod module to dig a nice hole for the pipe (same pos. params)
+	Cannot be rotated. Use tracks or slopes for high-level pipes.
+     */
+     debug_msg (str("Pipe, length=", length, "height_start=", height_start));
+     x_0 = col    * PART_WIDTH(scale);
+     y_0 = -row * PART_WIDTH(scale) ;
+     z_0 = up     * PART_HEIGHT(scale);
+
+     // horizontal orientation (rotation). 90degs makes sense.
+     rotate_about_z (angle=orientation, point=[col*PART_WIDTH(scale),-row*PART_WIDTH(scale)])
+
+	  if (height_start == 0) {
+	       translate ([x_0, y_0, z_0]) {
+		    pipe_0 (length=length, width=width, closure=closure, scale=scale, height_start=0);
+	       }
+	  }
+	  else {
+	       translate ([x_0, y_0, z_0]) {
+		    pipe_sloped_0 (col=col, row=row, up=up, length=length, width=width, closure=closure, height_start=height_start, scale=scale);
+	       }
+	  }
+}
+
+/* ------------------------------------ primitive pipes ------------------------------------------
+   and aux modules
+ */
+
+module pipe_0 (length=4, width=2, closure=5, scale=LUGO, height_start=0, scale=SCALE) {
+/* Aux function
+   Creates a pipe with a given length and form, aka closure
+   The pipe sits at origin X,Y,Z=0 along the y-axis in horizontal rotation position = 0
+   it should be re-positioned with the pipe() module
+   The outer width of the pipe is two Lego width = 16mm. That is height=5 (out of 6)
+   Do not change width = 2 for now !
+*/
+     radius = width * PART_WIDTH(scale) / 2.0;
+     y_0 = - length * PART_WIDTH(scale) / 2.0 ;
+     // pipe is pushed up its radius
+     z_0 = radius;
+     debug_msg (str ("pipe_0: Radius pipe =", radius, "length=", length));
+     difference () {
+	  // position the hollow tube
+	  translate ([radius, y_0, z_0]) {
+	       // The tube
+	       rotate ([90,0,0])
+		    difference () {
+		    // h will be rotated, so its left/right length, aka width in DOBLO
+		    cylinder(h= length*PART_WIDTH(scale), r = radius, center = true, $fs = CYL_FS);
+		    translate ([0,0,2*NUDGE]) cylinder(h= length*PART_WIDTH(scale)+30*NUDGE, r = radius -TUBE_WALL_WIDTH(scale), center = true, $fs = CYL_FS);
+	       }
+	  }
+	       
+	  // position of the cutting the block for the tube according to closure.
+	  top_block_shave (col=0, row=-0.5, width=width, length=length+1, up=closure+NUDGE, height=FULL*4, scale=scale);
+     }
+}
+
+module pipe_sloped_0 (length=4, width=2, closure=5, up=0, scale=LUGO, height_start=FULL, scale=SCALE) {
+     /* We first create a normal straight pipe that sits flat on the y axis, going forward from point 0
+	The pipe must be longer than length because if rotated it will not fit.
+	rotation is about point 0, i.e. after initial rotation the tube sits minus one unit on x axis and will be cut on y=0 and length.
+	*/
+     angle = atan2(height_start * PART_HEIGHT(scale), length * PART_WIDTH(scale)) ;
+     point = [0,0,0];
+     // add extra length because we will have to shave off horizontally
+     extra_length = length + 3; // we add 3 PART_WIDTH
+     // move it so that the lower tip is z=0
+     translate ([0,0,height_start * PART_HEIGHT(scale)])
+     // Shave off extra elements in front and back
+     difference () {
+	  // This will position and rotate the tube (down) and it only will have to be lifted up from z=0
+	  rotate_about_x (angle, point)
+	       translate ([0,PART_WIDTH(scale),0]) // move it backwards on y axis one unit
+	       pipe_0 (length=extra_length, width=width, closure=closure, scale=scale, height_start=height_start);
+	  block (col=-1+NUDGE, up=-FULL*2+NUDGE, row=-2+NUDGE, width=width*2, length=2,  height=6*FULL, scale=scale); // bit of overkill
+	  block (col=-1+NUDGE, up=-FULL*5+NUDGE, row=length-2*NUDGE, width=width*2, length=2, height=10*FULL, scale=scale);
+     }
+}
+
+
+module top_block_shave (col=-1, row=-1, width=2, length=4, up=FULL, height=3*FULL, scale=SCALE) {
+     /* Aux function that will draw a block that can be used to shave off stuff on top.
+	We add some nudging preventing share edges in principle
+      */
+     // echo ("PART_WIDTH(SCALE) =", PART_WIDTH(SCALE) );
+     block (col=col+NUDGE, row=row+NUDGE, width=width+NUDGE, length=length+NUDGE, up=up-NUDGE, height=height+NUDGE, scale=scale);
+}
+
+// pipe_rod (height_start=0,row=0, length=8);
+// pipe_rod (height_start=3,col=2, row=2);
+// pipe_rod (height_start=6,row=2);
+// pipe_rod (scale=DOBLO, height_start=FULL);
+// pipe_rod (scale=DOBLO);
+// pipe_rod (scale=DOBLO, orientation=180);
+
+module pipe_rod (col=0, row=0, up=0, width=2, length=4, height_start = 0, orientation=0, scale=SCALE, rotation=0) {
+     /* This is an aux function to dig the bed of a pipe
+	It is just a cylinder that is positioned flat, by default at x=0/y=0. It is used for subtraction.
+	It can slope if height_start > 0
+     */
+     x_0 = col*PART_WIDTH(scale) + width * PART_WIDTH(scale) / 2.0;
+     radius = PART_WIDTH(scale); // tubes always fill a 2*width
+     debug_msg ("pipe_rod: ", "row =", row, "length=", length);
+
+     rotate_about_z (angle=orientation, point=[col*PART_WIDTH(scale),-row*PART_WIDTH(scale)]) {
+	  // row is inverted
+	  if (height_start == 0) {
+	       // the rod is flat
+	       y_0 = - row * PART_WIDTH(scale)-length*PART_WIDTH(scale)/2.0;
+	       z_0 = up * PART_HEIGHT(scale) + PART_WIDTH(scale); 
+	       translate ([x_0, y_0, z_0]) {
+		    rotate ([90,0,0])
+			 translate ([0, 0, 0])
+			 cylinder(h= length*PART_WIDTH(scale), r = radius, center = true, $fs = CYL_FS);
+			 }
+	  }
+	  // else it slopes
+	  else {
+	       // if row is not 0 then move it forth or back (inverted)
+	       y_0 = -(row * PART_WIDTH(scale));
+	       // the back originally sits on z=0.
+	       z_0 = up  * PART_HEIGHT(scale) + height_start * PART_HEIGHT(scale);
+	       tube_length = (length+3)*PART_WIDTH(scale); // must be longer because it rotates
+	       angle = atan2(height_start * PART_HEIGHT(scale), length * PART_WIDTH(scale)) ;
+	       debug_msg (str ("PIPE_ROD, height_start=", height_start, ", length=", length, ", angle=", angle));
+
+	       // final x/y/z position
+	       translate ([x_0, y_0, z_0]) {
+		    // rotate around x=0 with angle = slope. bottom of part to but should sit at z=0 
+		    rotate_about_x (angle,  [0,0,0]) {
+			 // first rotate around x=0, then move it so that top is x=0 and y=0 + 1 part width
+			 translate ([0, - tube_length/2 + 1*PART_WIDTH(scale) , radius])
+			      rotate ([90,0,0])
+			      cylinder(h=tube_length , r = radius, center = true, $fs = CYL_FS);
+			      }
+		    }
+	  }
+     }
+}
+
+
+/* Curved tracks ***********************************************************
+
+There are several kinds of curves that some day could be united into a single module.
+- curve (sharp curves)
+- curve_wide (wider curves)
+- sloped_curve
+
+ */
+
+/* ------------------------------------- SHARP CURVE
+
+For now we support
+
+- sharp 90deg curves sitting on a single 2x2  block
+- 180 deg curves sitting on a 4x2 block
+
+The openscad angle parameter requires an openscad version (2016.xx) that is not installed in Ubuntu 18 :( Workaround: Use blocks to cut.
+
+To do:
+- Add rotation
+
+*/ 
+
+// curve (up=0, closure=7, angle=180, col=3, row=3, nibbles_on_off=true);
+// curve (up=0, closure=7, angle=180, scale=DOBLO, col=-6, row=2);
+// curve (up=0, closure=5, angle=90, row=3, nibbles_on_off=true);
+// curve (up=0, closure=10, angle=90, row=3, col=6, nibbles_on_off=true);
+
+module curve (col=0, row=0, up=0, closure=5, orientation=0, bottom_height=BOTTOM_HEIGHT, support_height=0, scale=LUGO, angle = 90, nibbles_on_off=false, id="some curve") {
+     /* The curve element will be placed its sharp corner against x=0/y=0 (because this requires the least amount of code)
+	In the doblo system: width= left/right length, length= forth/back length
+	The tube is embedded in block that sits on a doblo block without nibbles.
+	Instead of just digging a hole into a block we create a real tube, allowing for some subtler support structures some day
+	Orientation is a bit messy since it has to happen within the doblo components
+	This elements is similar to track () with respect to its construction and params.
+	Params
+	- closure is a value between 2 and 12 and it defines the height of block that will shave off the tube
+	- bottom_height is the height of the block underneath the tube, e.g. the lego/duplo compatible
+	- angle is either 90 or 180
+	- There __no__ length/width since they are determined by the tube which is width=2 and length=2 or 4
+	*/
+
+     trace_msg (type="curve", id= id);
+
+     mylength = (angle==90) ? 2 : 4;
+     upper_block_h = (support_height > 0) ? support_height : closure;
+     nibbles_h = upper_block_h + bottom_height;
+
+     if (angle == 90 ) {
+	  width =2; length=2;
+	  // position a lego/duplo compatible block
+	  color ("red") doblo (col=col, row=row, up=up, width=width, length=length, height=bottom_height, nibbles_on_off=false,diamonds_on_off=false,scale=scale,orientation=orientation) ;
+	  // Add an tube embedded in a block on top
+	  curve_component (col=col, row=row, up=up+bottom_height, closure=closure, orientation=orientation, support_height=support_height, scale=scale, curve_radius=1, angle=90);
+	  
+	  }
+
+     else if (angle == 180) {
+	  width =2; length=4;
+	  
+	  // position a lego/duplo compatible block
+	  color ("red") doblo (col=col, row=row, up=up, width=width, length=length, height=bottom_height, nibbles_on_off=false,diamonds_on_off=false,scale=scale,orientation=orientation) ;
+	  // Add an tube embedded in a block on top
+	  curve_component (col=col, row=row, up=up+bottom_height, closure=closure, orientation=orientation, support_height=support_height, scale=scale, angle=180, curve_radius=1);
+     }
+     else echo ("<font color='red'>WARNING </font>: Unsupported angle parameter used in curve ", id, "angle= ", angle);
+
+     // add nibbles maybe
+     if (nibbles_on_off) {
+	 if (upper_block_h > 9) {
+	     nibbles (col=col, row=row, up=up+nibbles_h, width=2, length=(mylength==4)?4:2, scale=scale);
+	 }
+	 else if (mylength==4) {
+	     nibbles (col=col+1, row=row+3, up=up+nibbles_h, width=1, length=1, scale=scale);
+	     nibbles (col=col+1, row=row, up=up+nibbles_h, width=1, length=1, scale=scale);
+	 }
+	 else {
+	     nibbles (col=col+1, row=row+1, up=up+nibbles_h, width=1, length=1, scale=scale);
+	 }
+     }
+}
+
+/* ------------------------------------- WIDE CURVES -------------------------------------------------- */
+
+/*
+For now we plan to support
+
+- A 90deg curve sitting on a single 4x4 square block
+- A 180 deg curve sitting on block with a hole in the middle.
+*/
+
+// The angle parameter requires an openscad version (2016.xx) that is not installed in Ubuntu 18 :(
+
+// To do: Add an angle or type argument ?
+
+// doblo (col=0, row=0, up=3*THIRD, height=THIRD, length=8, width=4, nibbles_on_off=true );
+// curve_wide (row=-4, col=-4, angle=90, nibbles_on_off=true, closure=10);
+// curve_wide(angle=180, support_height=3, closure=10);
+// curve_wide(angle=180, support_height=3, closure=5, scale=DOBLO);
+// curve_wide (row=2, col=-4, angle=90, nibbles_on_off=true, closure=5, scale=LUGO);
+// curve_wide (row=-4, col=-4, angle=90, nibbles_on_off=true, closure=5, scale=DOBLO);
+// curve_wide(angle=180, closure=10, scale=LUGO);
+// curve_wide(angle=180, closure=10, scale=DOBLO);
+
+module curve_wide (col=0, row=0, up=0, closure=5, orientation=0, bottom_height=BOTTOM_HEIGHT, support_height=0, scale=LUGO, angle = 90, nibbles_on_off=true,  id="some wide curve") {
+     /* The curve element will be placed its sharp corner against x=0/y=0 (because this requires the least amount of code)
+	In the doblo system: width= left/right length, length= forth/back length
+	The tube is embedded in block that sits on a doblo block without nibbles.
+	Instead of just digging a hole into a block we create a real tube, allowing for some subtler support structures some day
+	Orientation is a bit messy since it has to happen within the doblo components
+	This elements is similar to track () with respect to its construction and params.
+	Params
+	- closure is a value between 2 and 12 and it defines the height of block that will shave off the tube
+	- bottom_height is the height of the block underneath the tube, e.g. the lego/duplo compatible
+	- angle is either 90 or 180
+	- length/width are not used for now since they are determined by the tube which its width=2.
+	*/
+
+     // if (length || width) echo ("<font color='orange'> WARNING </font>: MARBLE_RUN curve_wide element ignores length and width");
+     trace_msg (type="curve_wide", id= id);
+     upper_block_h = (support_height > 0) ? support_height : closure;
+
+     if (angle == 90) {
+	  width =4; length=4;
+	  // position a lego/duplo compatible block
+	  color ("red") doblo (col=col, row=row, up=up, width=width, length=length, height=bottom_height, nibbles_on_off=false,diamonds_on_off=false,scale=scale,orientation=orientation) ;
+	  // Add an tube embedded in a block on top
+	  curve_component (col=col, row=row, up=up+bottom_height, closure=closure, orientation=orientation, support_height=support_height, scale=scale, angle=90);
+	  // add some nibbles inside the curve
+	  if (nibbles_on_off) {
+	    if (upper_block_h > 9) {
+	      nibbles (col=col, row=row, up=bottom_height+upper_block_h, width=4, length=4, scale=scale);
+	    }
+	    else {
+	      nibbles (col=col, row=row, up=bottom_height+upper_block_h, width=1, length=1, scale=scale);
+	      nibbles (col=col+3, row=row+3, up=bottom_height+upper_block_h, width=1, length=1, scale=scale);
+	    }
+	  }
+     }
+     else if (angle == 180) {
+
+       width =4; length=8;
+       // position a lego/duplo compatible block
+       color ("red") doblo (col=col, row=row, up=up, width=width, length=length, height=bottom_height, nibbles_on_off=false,diamonds_on_off=false,scale=scale,orientation=orientation) ;
+       // Add an tube embedded in a block on top
+       curve_component (col=col, row=row, up=up+bottom_height, closure=closure, orientation=orientation, support_height=support_height, scale=scale, angle=180);
+       // nibbles
+       if (nibbles_on_off)
+	    if (upper_block_h > 9) {
+	      nibbles (col=col, row=row, up=bottom_height+upper_block_h, width=4, length=8, scale=scale);
+	    }
+	    else {
+	      nibbles (col=col, row=row+3, up=bottom_height+upper_block_h, width=1, length=2, scale=scale);
+	      nibbles (col=col+3, row=row+7, up=bottom_height+upper_block_h, width=1, length=1, scale=scale);
+	      nibbles (col=col+3, row=row, up=bottom_height+upper_block_h, width=1, length=1, scale=scale);
+	    }
+     }
+     else echo ("<font color='red'>WARNING: </red> Unsupported angle parameter used in curve_wide function. It must be either 90 or 180", angle);
+     
+     // if (closure > 10) // add nibbles
+}
+
+// curve_component (curve_radius=1);
+// curve_component (curve_radius=3);
+// curve_component (curve_radius=2, angle=90);
+// curve_component (col=4,curve_radius=2, angle=90);
+// curve_component (col=-4,curve_radius=2, angle=180);
+// curve_component (col=-10,curve_radius=4, angle=180);
+// curve_component(angle=90);
+// curve_component(angle=180, row=3, col=-10, closure=4, nibbles_on_off=true);
+// curve_component(angle=90, row=-3, col=-10 ,closure=8.2, nibbles_on_off=true);
+
+
+// ---------------------------------------- curve component (mid-level)
+
+// curve_component(angle=180,up=FULL);
+module curve_component (col=0, row=0, up=0, curve_radius=3, closure=5, orientation=0, support_height=0, scale=LUGO, angle=180) {
+     /* The curve_component creates narrow or wider, 90 deg or 180 deg angled curves embedded into a block. 
+	You could use this to create your own doblo blocks or to create playmobile-like structures.
+	Params:
+	- curve_radius defines a radius in terms of doblo part with. Meaningful values are 1,2,3 and maybe 4.
+      */
+
+     // the block that supports the tube has the same size unless support_height is set.
+     upper_block_h = (support_height > 0) ? support_height : closure;
+
+     //compute the size of the block in function of radius
+     mylength = (angle==90) ? curve_radius+1 : curve_radius*2+2;
+     // width is always the same as the doblo radius, e.g. a curve_radius=2 results in 3*PART_WIDTH
+     mywidth = curve_radius+1;
+
+     // prepare the bed
+     difference () {
+	  color("crimson") block (col=col, row=row, up=up, width=mywidth, length=mylength, height=upper_block_h, nibbles_on_off=false, diamonds_on_off=false, scale=scale,orientation=orientation) ;
+	  // dig the hole
+	  curved_tube (col=col, row=row-NUDGE, up=up, orientation=orientation, scale=scale, filled=true, angle=angle, curve_radius=curve_radius);
+     }
+     // Add the pipe, shave off the top
+     difference () {
+	  curved_tube (col=col, row=row, up=up, orientation=orientation, scale=scale, angle=angle,  curve_radius=curve_radius);
+	  // position of the cutting the block for the tube according to closure.
+	  top_block_shave (col=col-mywidth, row=row-0.5, width=mywidth*3, length=mylength+1, up=up+closure-NUDGE, height=mylength*4, scale=scale);
+     }
+}
+
+/* ------------------------------------ CURVED SLOPE
+
+ */
+
+// curved_slope (angle=180, height_start=2*FULL, curve_radius=2, closure=7, orientation=0,scale=DOBLO);
+// curved_slope (angle=90, height_start=2*FULL, curve_radius=2, closure=10, orientation=0);
+
+// curved_slope (angle=180, height_start=2*FULL, curve_radius=1, closure=6, orientation=0, scale=DOBLO);
+
+module curved_slope (col=0, row=0, up=0, closure=6, orientation=0, bottom_height=BOTTOM_HEIGHT, support_height=0, scale=LUGO, angle = 90, nibbles_on_off=true,  id="some wide sloped curve", bridges=false) {
+     /* The curved slope element will be placed its sharp corner against x=0/y=0 (because this requires the least amount of code)
+	In the doblo system: width= left/right length, length= forth/back length
+	The tube is embedded in block that sits on a doblo block without nibbles.
+	WARNING - THIS MAY NOT FIT vertically - test print one first if you use high closures.
+     */
+
+     trace_msg (type="<font color='pink'>Curved_slope: </font>", id= id);
+     upper_block_h = (support_height > 0) ? support_height : closure;
+     // tube radius - fixed in this system
+     tube_radius_mm =  PART_WIDTH(scale);
+     width = curve_radius + 2;
+     nibble_h1 = height_start/2+upper_block_h;
+     nibble_h2 = height_start+upper_block_h-1;
+
+     if (angle == 90) {
+       // NOT implemented. I have to do something smarter, e.g. use a tube library.
+     }
+     else if (angle == 180) {
+
+     //compute the length of the block in function of radius
+	  length = (angle==90) ? curve_radius+1 : curve_radius*2+2;
+	  // position a lego/duplo compatible block
+	  color ("red") doblo (col=col, row=row, up=up, width=width, length=length, height=bottom_height, nibbles_on_off=false,diamonds_on_off=false,scale=scale,orientation=orientation) ;
+	  // Add a tube embedded in a block on top
+	  curved_slope_component (col=col, row=row, up=up+bottom_height, curve_radius=curve_radius, closure=closure, orientation=orientation, height_start=height_start, support_height=support_height, scale=scale, angle=180, bridges=bridges);
+       // nibbles
+       if (nibbles_on_off) {
+	    block (col=col+width-1, row=row+length-2, up=bottom_height, height=nibble_h1, width=1, length=2, scale=scale, nibbles_on_off=true);
+	    // block (col=col+width-2, row=row+length-1, up=bottom_height, height=nibble_h2, width=1, length=1, scale=scale, nibbles_on_off=true); // this one would need some shaving
+	    block (col=col+width-1, row=row, up=bottom_height, height=nibble_h2, width=1, length=2, scale=scale, nibbles_on_off=true);
+
+	    }
+     }
+     else echo ("<font color='red'>WARNING: </red> Unsupported angle parameter used in curve_wide function. It must be either 90 or 180", angle);
+}
+
+/* -------------------------------------- Sloped Curved tube component (mid-level)
+   
+   @@ not very safe code, may not have compatible hole heights. Needs test printing.
+   if height_start=0 it also creates flat curved tubes.
+*/
+		      
+// curved_slope_component (angle=90, height_start=2*FULL, curve_radius=3, closure=6, orientation=0);
+//curved_slope_component (angle=180, height_start=1*FULL, curve_radius=1, closure=5);
+//curved_slope_component (col=10, angle=180, height_start=3*FULL, curve_radius=3, closure=8);
+//curved_slope_component (up=25, col=-6, angle=180, height_start=2*FULL, curve_radius=2, closure=5);
+//curved_slope_component (up=0, col=-6, angle=180, height_start=2*FULL, curve_radius=2, closure=11);
+// track_component (col=-5, row=0, up=8, length=2,  width=2, closure=5, orientation=90);
+		      
+// curved_slope_component (col=6, angle=180, height_start=2*FULL, curve_radius=2, closure=6, orientation=0);
+// track (row=-4,col=2,up=6,closure=6);
+// track (orientation=90,length=2,row=3,col=-2,up=-4);
+		      
+
+/// SORT OF WORKS .....
+
+module curved_slope_component (col=0, row=0, up=0, curve_radius=3, closure=5, orientation=0, angle=180, scale=LUGO, filled=false, height_start=FULL, support_height=0, scale=SCALE, bridges=false) {
+
+     /* Low level construct. A curved_tube tilted down an angle. 
+	The radius of the curved tube is adjusted.
+	Params:
+	- curve_radius narrow or wide 180 deg curve
+
+	TODO:
+	- Add 90 deg curves or something similar. This requires more trigonometric calculus. Since the radius will change with various heights, the entry hole will not be aligned. Maybe offer a fixed block
+	- Add orientation maybe (a simple transform at top level ?)
+
+      */
+
+    angle = 180;
+
+    if (angle != 180) { 
+	debug_msg ( str ("SORRY, angle must be 180, others are ignored") );
+    }
+
+     // tube radius - fixed in this system
+     tube_radius_mm =  PART_WIDTH(scale);
+     //compute the length of the block in function of radius
+     mylength = curve_radius*2+2;
+     mylength_mm = mylength * PART_WIDTH(scale);
+     // width depends on radius, e.g. curve_radius = 2, gives mywidth = 4 * PART_WIDTH
+     // block is larger because the tube extends a little beyound the wall in the back.
+     mywidth = curve_radius+2;
+
+     // length of the slope - use pythagore's ways
+     hypothenuse_mm = sqrt(pow (mylength * PART_WIDTH (scale), 2) + pow (height_start * PART_HEIGHT (scale), 2));
+     // the ratio slope / length 
+     cosecant = hypothenuse_mm / mylength_mm;
+     // extra % added in the slope length
+     curve_radius_fixed = curve_radius * cosecant;
+     mylength_mm_fixed = mylength_mm * cosecant;
+     curve_radius_mm = curve_radius_fixed * PART_WIDTH(scale);
+
+     trace_msg (str ("Sloped_curved_tube, curve_radius=", curve_radius, ",  height_start=", height_start, ", mylength=", mylength, ", mylength_mm=", mylength_mm, ",  hypothenuse_mm=", hypothenuse_mm, ",   curve_radius_mm=", curve_radius_mm, ",  cosecant=", cosecant, ",  curve_radius_fixed=", curve_radius_fixed, ",  horiz. angle=", angle));
+     
+    down_angle = atan2(height_start * PART_HEIGHT(scale), mylength * PART_WIDTH(scale)) ;
+
+     // rotation point is center of the tube hole to the left, so that it will tilt down and stay at y=0.
+    rot_point = [0,-tube_radius_mm,tube_radius_mm];
+     
+    // height_fixed = tan(down_angle) * (mylength_mm_fixed - tube_radius_mm);
+     height_fixed = tan(down_angle) * (mylength_mm - tube_radius_mm*2); // almost works !!
+
+     // --- block underneath
+     // the block that supports the tube has the same size unless support_height is set.
+     upper_block_h = (support_height > 0) ? support_height : closure;
+     // upper_block_h_fixed = upper_block_h - upper_block_h* 0.1;
+     upper_block_h_fixed = upper_block_h;
+
+     // prepare the bed
+     difference () {
+	  union () {
+	       difference () {
+		    union () {
+			 // base block. tube should touch its bottom to the right
+			 echo ("bridges=", bridges);
+			 color("green") block (col=col, row=row, up=up, width=mywidth, length=mylength, height=upper_block_h_fixed, nibbles_on_off=false, diamonds_on_off=false, scale=scale,orientation=0,debug=true, bridges=bridges) ;
+			 color ("hotpink") triangle_block (col=col, row=row, up=up+upper_block_h_fixed, width=mywidth, length=mylength, height_start = height_start, scale=scale,orientation=0) ;
+		    }
+		    // dig the hole with a pipe
+		    // translate ([0,0,  height_start * PART_HEIGHT (scale)])
+		    translate ([0,0,  up*PART_HEIGHT(scale)+height_fixed])
+			 rotate_about_pt (down_angle, [1,0,0], rot_point)
+			 curved_tube (col=col, row=row, up=0, orientation=0, scale=scale, filled=true, angle=angle, curve_radius=curve_radius_fixed, shave=false);
+	       }
+	       // Add the pipe, shave off the top
+	       translate ([0,0,  up*PART_HEIGHT(scale) +height_fixed])
+		    // translate ([0,0,  height_start * PART_HEIGHT (scale)])
+		    rotate_about_pt (down_angle, [1,0,0], rot_point)
+		    curved_tube (col=col, row=row, up=0, orientation=0, scale=scale, angle=angle,  curve_radius=curve_radius_fixed, shave=false);
+	  }
+	  translate ([0,0, height_fixed]) {
+	       // translate ([0,0,  height_start * PART_HEIGHT (scale)])
+	       rotate_about_pt (down_angle, [1,0,0], rot_point)
+		    // position of the cutting the block for the tube according to closure.
+		    top_block_shave (col=col-mywidth, row=row-3, width=mywidth*3, length=mylength*3, up=up+upper_block_h, height=mylength*4, scale=scale);
+	  }
+	  if (angle==90) top_block_shave (col=col-mywidth/2, row=row-mylength*3, width=mywidth*2, length=mylength*3, up=up, height=mylength*12, scale=scale);
+     }
+}
+
+
+// rotate_about_pt (30, [1,0,0], [0,5,5])  cube (10);
+// rotate_about_pt (60, [1,0,0], [0,5,5])  cube (10);
+// rotate_about_pt (90, [1,0,0], [0,5,5])  cube (10);
+
+
+/* -------------------------------------- Curved tube (low-level)
+*/
+
+// curved_tube(col=2, angle=180, curve_radius=2);
+// curved_tube(col= -2, angle=180, curve_radius=2.5);
+// curved_tube(col=-4, row=-4, angle=180, curve_radius=1);
+// curved_tube(col=-4, angle=180, curve_radius=2, filled=true);
+// curved_tube(col=3, row=4, angle=90, curve_radius=4, filled=false);
+// curved_tube(col=0, row=4, angle=180, curve_radius=4, filled=false);
+// curved_tube(angle=90, curve_radius=4, filled=false);
+// curved_tube(angle=180);
+
+
+module curved_tube  (col=0, row=0, up=0, curve_radius=3, angle=90, scale=LUGO, filled=false, shave=true) {
+     /*	Low level construct, i.e. a curved tube that is positioned flat starting x=0/y=0 by default
+	If filled = true can be used for subtraction, i.e. to dig a large hole for the not filled version.
+	Params:
+	- angle should be either 90 or 180. Other angles could be implemented in the future, in particular when normal OpenSCAD distributions accept rotate_extruct(angle= ....)
+
+	TODO: 
+	- Add orientation maybe (a simple transform at top level ?)
+	- Use the shave=true also for the 180 version (needs testing other modules)
+     */
+
+     debug_msg ("MARBLE RUN: curved_tube:, curve_radius=", curve_radius, ", col= ", col, ", row= ", row);
+     curve_radius_mm = curve_radius * PART_WIDTH (scale);
+     tube_radius =  PART_WIDTH(scale);
+     inner_radius = PART_WIDTH(scale) - TUBE_WALL_WIDTH (scale);
+     
+     x_0 = col    * PART_WIDTH(scale);
+     // slide to front so that upper corner is at origin. The larger 180 deg block must be pushd more.
+     y_0 = (angle==90) ? -row * PART_WIDTH(scale) : -(row+curve_radius+1) * PART_WIDTH(scale) ;
+     z_0 = up     * PART_HEIGHT(scale) + tube_radius;
+     $fn = 30;
+     debug_msg (str ("curved_tube: curve_radius=", curve_radius, "curve radius in mm=", curve_radius_mm, ", tube_radius=", tube_radius, ", inner_radius=", inner_radius));
+     
+     // position the result in the coordinate system
+     translate ([x_0, y_0, z_0]) {
+	  difference () {	  
+	       if (filled == true) {
+		    rotate_extrude() {
+			 // rotate_extrude(angle=90) - not working in ordinary distributions
+			 translate([curve_radius_mm, 0]) // center of rotation
+			      circle(r = tube_radius); // radius of rotated circle
+		    }
+	       }  else {
+		    difference () {
+			 rotate_extrude() {
+			      // rotate_extrude(angle=90) - not working in ordinatry distributions
+			      translate([curve_radius_mm, 0]) // center of rotation
+				   circle(r = tube_radius); // radius of rotated circle
+			 }
+			 rotate_extrude() {
+			      translate([curve_radius_mm, 0]) // center of rotation
+				   circle(r = inner_radius); // radius of rotated circle
+			 }
+		    }
+	       }
+               // shave to the left (block pos are relative within this difference block !)
+	       block (col=-6-NUDGE, row=-6-NUDGE, up=-FULL, length=12, width=6,height=2*FULL, scale=scale);
+	       // shave in the back, makes it a 90 deg angle
+	       if (angle == 90 && shave==true)
+		    block (col=-5+NUDGE, row=-6+NUDGE, up=-FULL+NUDGE, length=6, width=12, height=12, scale=scale);
+	  }
+	  
+     }
+}
+
+/* -----------------------------------  Down curves
+
+   Down curves: either start flat and then drop vertically, or the opposite, i.e. start with vertical drop and then level out.
+   */
+
+
+/*
+For now we plan to support
+
+- A 90deg curve sitting on a 4x2 block flat then going down
+- A 90deg curve sitting on a 4x2 block going down then leveling out
+
+The two can be combined 
+*/
+
+// The angle parameter requires an openscad version (2016.xx) that is not installed in Ubuntu 18 :(
+
+// To do: Add an angle or type argument ?
+
+// doblo (col=0, row=0, up=3*THIRD, height=THIRD, length=8, width=4, nibbles_on_off=true );
+// down_curve (row=-4, col=-4, angle=90, nibbles_on_off=true, closure=10);
+// down_curve(angle=180, support_height=3, closure=10);
+// down_curve(angle=180, support_height=3, closure=5, scale=DOBLO);
+// down_curve (row=2, col=-4, angle=90, nibbles_on_off=true, closure=5, scale=LUGO);
+// down_curve (row=-4, col=-4, angle=90, nibbles_on_off=true, closure=5, scale=DOBLO);
+// down_curve(angle=180, closure=10, scale=LUGO);
+// down_curve(angle=180, closure=10, scale=DOBLO);
+
+module down_curve (col=0, row=0, up=0, closure=5, orientation=0, bottom_height=BOTTOM_HEIGHT, support_height=0, scale=LUGO, angle = 90, nibbles_on_off=true,  id="some wide curve") {
+     /* The curve element will be placed its sharp corner against x=0/y=0 (because this requires the least amount of code)
+	In the doblo system: width= left/right length, length= forth/back length
+	The tube is embedded in block that sits on a doblo block without nibbles.
+	Instead of just digging a hole into a block we create a real tube, allowing for some subtler support structures some day
+	Orientation is a bit messy since it has to happen within the doblo components
+	This elements is similar to track () with respect to its construction and params.
+	Params
+	- closure is a value between 2 and 12 and it defines the height of block that will shave off the tube
+	- bottom_height is the height of the block underneath the tube, e.g. the lego/duplo compatible
+	- angle is either 90 or 180
+	- length/width are not used for now since they are determined by the tube which its width=2.
+	*/
+
+     // if (length || width) echo ("<font color='orange'> WARNING </font>: MARBLE_RUN down_curve element ignores length and width");
+     trace_msg (type="down_curve", id= id);
+     upper_block_h = (support_height > 0) ? support_height : closure;
+
+     if (angle == 90) {
+	  width =4; length=4;
+	  // position a lego/duplo compatible block
+	  color ("red") doblo (col=col, row=row, up=up, width=width, length=length, height=bottom_height, nibbles_on_off=false,diamonds_on_off=false,scale=scale,orientation=orientation) ;
+	  // Add an tube embedded in a block on top
+	  curve_component (col=col, row=row, up=up+bottom_height, closure=closure, orientation=orientation, support_height=support_height, scale=scale, angle=90);
+	  // add some nibbles inside the curve
+	  if (nibbles_on_off) {
+	    if (upper_block_h > 9) {
+	      nibbles (col=col, row=row, up=bottom_height+upper_block_h, width=4, length=4, scale=scale);
+	    }
+	    else {
+	      nibbles (col=col, row=row, up=bottom_height+upper_block_h, width=1, length=1, scale=scale);
+	      nibbles (col=col+3, row=row+3, up=bottom_height+upper_block_h, width=1, length=1, scale=scale);
+	    }
+	  }
+     }
+     else if (angle == 180) {
+
+       width =4; length=8;
+       // position a lego/duplo compatible block
+       color ("red") doblo (col=col, row=row, up=up, width=width, length=length, height=bottom_height, nibbles_on_off=false,diamonds_on_off=false,scale=scale,orientation=orientation) ;
+       // Add an tube embedded in a block on top
+       curve_component (col=col, row=row, up=up+bottom_height, closure=closure, orientation=orientation, support_height=support_height, scale=scale, angle=180);
+       // nibbles
+       if (nibbles_on_off)
+	    if (upper_block_h > 9) {
+	      nibbles (col=col, row=row, up=bottom_height+upper_block_h, width=4, length=8, scale=scale);
+	    }
+	    else {
+	      nibbles (col=col, row=row+3, up=bottom_height+upper_block_h, width=1, length=2, scale=scale);
+	      nibbles (col=col+3, row=row+7, up=bottom_height+upper_block_h, width=1, length=1, scale=scale);
+	      nibbles (col=col+3, row=row, up=bottom_height+upper_block_h, width=1, length=1, scale=scale);
+	    }
+     }
+     else echo ("<font color='red'>WARNING: </red> Unsupported angle parameter used in down_curve function. It must be either 90 or 180", angle);
+     
+     // if (closure > 10) // add nibbles
+}
+
+// down_component (curve_radius=1);
+// down_component (curve_radius=3*FULL, angle=90);
+// down_component (curve_radius=2, angle=90);
+// down_component (col=4,curve_radius=2, angle=90);
+// down_component (col=-4,curve_radius=2, angle=180);
+// down_component (col=-10,curve_radius=4, angle=180);
+// down_component(angle=90);
+// down_component(angle=180, row=3, col=-10, closure=4, nibbles_on_off=true);
+// down_component(angle=90, row=-3, col=-10 ,closure=8.2, nibbles_on_off=true);
+
+
+// ---------------------------------------- curve component (mid-level)
+
+// down_component();
+
+down_component (curve_radius=2*FULL, scale=DOBLO);
+// down_component (row=-6, curve_radius=2*FULL, angle=90, scale=LUGO);
+track (col=-2, row=0, up=FULL+2*THIRD, length=8,  width=2, closure=5, orientation=0, scale = DOBLO);
+
+module down_component (col=0, row=0, up=0, curve_radius=18, closure=5, orientation=0, support_height=0, angle=90, scale=LUGO) {
+     /* The down_component creates narrow or wider, 90 deg angled down curves embedded into a block. 
+	You could use this to create your own doblo blocks or to create playmobile-like structures.
+	Params:
+	- curve_radius defines a radius in terms of doblo part with. Meaningful values are 1,2,3 and maybe 4.
+     */
+
+     
+     // the block that embeds the tube. A curve radius should be a multiple of standard doblo height
+     // We just add FULL (i.e. 6 height units)
+     block_height = curve_radius+FULL+2*THIRD;
+     //compute the size of the block in function of radius
+     // we use doblo units here for height. 
+     // A doblo part width (8mm lego) is about 5 X part height (1.6mm Lego)
+     curve_radius_fixed = ceil (curve_radius / 5.);
+     mylength = ( curve_radius_fixed  + 2 );
+     // width is always the same as the doblo radius, e.g. a curve_radius=2 results in 3*PART_WIDTH
+     mywidth = 2;
+     debug_msg (str ("MARBLE RUN: down_component:, curve_radius=", curve_radius, ", mylength=", mylength, ", col= ", col, ", row= ", row));
+    
+     // create the block and the down tube
+     difference () {
+	  union () {
+	       color("lightcoral") doblo (col=col, row=row, up=up, width=mywidth, length=mylength, height=2*THIRD, nibbles_on_off=false, diamonds_on_off=false, scale=scale,orientation=orientation) ;	       color("crimson") block (col=col, row=row, up=up+2*THIRD, width=mywidth, length=mylength, height=block_height-2*FULL, nibbles_on_off=false, diamonds_on_off=false, scale=scale,orientation=orientation) ;
+	  }
+	  // dig the hole
+
+	  down_tube (col=col, row=row-NUDGE, up=up, orientation=orientation, scale=scale, filled=true, curve_radius = curve_radius);
+     }
+}
+
+// down_tube (curve_radius=3*FULL, angle=90);
+module down_tube  (col=0, row=0, up=0, curve_radius=3*FULL, scale=LUGO, filled=false, shave=true) {
+	  /*	Low level construct, i.e. a 
+     */
+
+     debug_msg ("MARBLE RUN: down_tube:, curve_radius=", curve_radius, ", col= ", col, ", row= ", row);
+     // different from other blocks. Here we only want the inside tube
+     tube_radius_mm =  PART_WIDTH(scale) - TUBE_WALL_WIDTH (scale);;
+     curve_radius_mm = curve_radius * PART_HEIGHT (scale) + tube_radius_mm;
+     
+     x_0 = col+1  * PART_WIDTH(scale);
+     // slide to front so that upper corner is at origin. The larger 180 deg block must be pushd more.
+     y_0 = -row * PART_WIDTH(scale);
+     z_0 = up    ;
+     $fn = 30;
+     debug_msg (str ("down_tube: curve_radius=", curve_radius, "curve radius in mm=", curve_radius_mm, ", (inner, only) tube_radius_mm=", tube_radius_mm));
+     
+     // position the result in the coordinate system
+     translate ([x_0, y_0, z_0]) {
+	  rotate ([0,270,0])
+	  difference () {
+	       rotate_extrude() {
+		    // rotate_extrude(angle=90) - not working in ordinary distributions
+		    translate([curve_radius_mm, 0]) // center of rotation
+			 circle(r = tube_radius_mm); // radius of rotated circle
+	       }
+	       // shave to the left (block pos are relative within this difference block !)
+	       // make sure to give some large extra to pipes sticking out since they are used for subtraction.
+		       
+	       block (col=-6 - 0.01, row=-6, up=-FULL, length=12, width=6,height=2*FULL, scale=scale);
+	       // shave in the back, makes it a 90 deg angle
+	       block (col=-5+NUDGE, row=-6-0.01, up=-FULL+NUDGE, length=6, width=12, height=12, scale=scale);
+	  }
+     }
+}
+
+
+/* Holes ***********************************************************
+
+/* --------------------------------------------- holes
+Holes are elements that allow the ball to fall down. For now there are two types:
+- left/right 6x2 with the hole in the middle and entry in the y axis
+- back/forth 6x2 with the hold in the middle and a pipe in the y axis
+- TODO: check if the hole prints OK (right now the two are done differently)
+
+*/   
+
+// hole (col=1, row=2, length=6, width=2, closure=7, id="hole A", nibbles_on_off=true);
+// hole (col=2, row=-2, length=2, width=6, closure=5, id="hole A", nibbles_on_off=true);
+
+module hole (col=0, row=0, up=0, length=2, width=6, closure=5, orientation=0, bottom_height=BOTTOM_HEIGHT, support_height=0, scale=LUGO,  id="some hole", nibbles_on_off=false, scale=SCALE){
+     /* Holes are 6x2 blocks and the ball will fall through a 2x2 area in the middle. There are two variants. Ball comes along the length, ball arrives in the middle.
+      */
+     trace_msg (type="hole", id= id);
+
+     // block with a hole - as ugly as can be
+     // 
+     cyl_h = bottom_height * PART_HEIGHT(scale) *2 ;
+     half_w = PART_WIDTH(scale);
+     block_w = 2;
+
+     if (width==6 && length==2) {
+	  // left/right type 
+	  difference () {
+	       union () {
+		    color ("Ghostwhite") doblo (col=col, row=row, height=bottom_height, length=block_w,  width=width, nibbles_on_off=nibbles_on_off, scale=scale);
+		    // hole component on top
+		    hole_component (col=col+2, row=row, up=bottom_height, length=length, width=width, closure=closure, orientation=orientation, bottom_height=BOTTOM_HEIGHT, support_height=support_height, scale=scale);
+		    if (nibbles_on_off) {
+			 nibbles (col=col, row=row, up=bottom_height, width=2, length=2, scale=scale);
+			 nibbles (col=col+4, row=row, up=bottom_height, width=2, length=2, scale=scale);
+		    }
+	       }
+	       // block digs a hole in lower block plus some into the hole component for easier printing
+	       // TEST PRINT WITHOUT adding PART_WDITH(scale)/2
+	       block ( col=col+2+TUBE_WALL_RATIO(scale), row=row+TUBE_WALL_RATIO(scale), 
+		       up= up - 10*NUDGE, height = bottom_height + PART_WIDTH(scale)/2 + 12*NUDGE,
+		       width=block_w - 2*TUBE_WALL_RATIO(scale), length=block_w- 2*TUBE_WALL_RATIO(scale), scale=scale );
+	  }
+     }
+
+     else if (width==2 && length==6) {
+	  // definition of the back/forth type
+
+	  // emptied doblo block at bottom
+	  difference () {
+	       color ("Ghostwhite") doblo (col=col, row=row, height=bottom_height, length=length,  width=block_w, nibbles_on_off=false, scale=scale );
+	       block ( col=col+TUBE_WALL_RATIO(scale), row=row+2+TUBE_WALL_RATIO(scale),
+		       up= up -10*NUDGE, height =bottom_height+ 20*NUDGE,
+		       width=block_w - 2*TUBE_WALL_RATIO(scale), length=block_w- 2*TUBE_WALL_RATIO(scale), scale=scale );
+	  }
+    
+	  // hole component on top 2 parts forward plus a track component
+	  hole_component (col=col, row=row+2, up=bottom_height, closure=closure, orientation=orientation, bottom_height=BOTTOM_HEIGHT, support_height=support_height, scale=scale);
+	  track_component (col=col, row=row+4-NUDGE, up=bottom_height, closure=closure, length=2,  width=2, nibbles_on_off=false, scale=scale );
+	  if (nibbles_on_off)
+	       nibbles (col=col, row=row, up=bottom_height, width=2, length=2, scale=scale);
+     }
+
+     else echo (str ("<font color='red'>WARNING/ERROR</font> : A hole must either have length=6 and width=2 or the opposite. Repair hole id = ", id));
+}
+
+
+
+// --------------------------------- hole componenent
+
+// hole_component();
+
+module hole_component (col=0, row=0, up=0, closure=5, orientation=0, bottom_height=BOTTOM_HEIGHT, support_height=0, scale=SCALE) {
+     /* The hole component sits at 0/0/0
+	- closure is a value between 2 and 12 and it defines the height of block that will shave off the tube
+	- bottom_height is the height of the block underneath the tube, e.g. the lego/duplo compatible
+	- length and width are not used for now
+     */
+  
+     
+     // the block that supports the tube has the same size unless support_height is set.
+     upper_block_h = (support_height > 0) ? support_height : closure;
+     cyl_h = upper_block_h * PART_HEIGHT(scale);
+     half_w = PART_WIDTH(scale);
+
+     // Dig a hole -- if this does not print, replace by the block use in hole();
+     difference () {
+       track_component (col=col, row=row, up=up, height=upper_block_h, closure=closure, length=2,  width=2, nibbles_on_off=false, scale=scale );
+       // place the cyl with doblo system, y is inverted
+       translate ([col*PART_WIDTH(scale)+ half_w, -row*PART_WIDTH(scale) - half_w, up-1] )
+	 cylinder(h=cyl_h*2, r = half_w - TUBE_WALL_WIDTH(scale), center = false, $fs = CYL_FS);
+	 }
+
+     // Add a wall to stop the ball
+     color("grey") block (col=col, row=row+NUDGE, up=up, width=2, length=TUBE_WALL_RATIO(scale)+NUDGE, height=upper_block_h, scale=scale);
+
+}     
+
+
+
