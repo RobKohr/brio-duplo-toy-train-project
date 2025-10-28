@@ -83,6 +83,10 @@ DIAMOND = 4;
 DUPLO_TOP_NIBBLE_RADIUS_ADJUSTMENT = 0.2;
 DUPLO_BOTTOM_NIBBLE_RADIUS_ADJUSTMENT = 0.2;
 
+// Rounded lip on top nibbles
+DUPLO_TOP_NIBBLE_ROUNDED_LIP = true; // true = add rounded lip, false = no lip
+TOP_NIBBLE_HIDE = false; // true = hide the cylinder part (for debugging the lip), false = normal
+
 function NO(SCALE) = PART_WIDTH(SCALE) / 2.0; //nibble offset
 function NBO(SCALE) = PART_WIDTH(SCALE); // nibble bottom offset
 function NH(SCALE) = (SCALE < 0.6) ? 1.75 * LEGO_SCALE(SCALE) : 4.55 * SCALE; // LEGO vs. DUPLO 
