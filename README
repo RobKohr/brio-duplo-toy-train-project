@@ -1,3 +1,28 @@
+## Purpose
+
+Use the dublofactory to create a brio compatable trains that work well with duplo blocks. 
+
+The files for the car tops are in 
+/DuploTrainFactory/car_tops
+
+The base train car that the tops go on top of is in 
+
+/DuploTrainFactory/DuploTrain for Brio Wood Tracks - 5454591/files
+
+
+Everything you need is exported to stls, but you can use the scad files to modify things.
+
+Dublo factory was tweaked to allow for flat bottom pieces to be merged with the train car better. 
+
+Also the nibbles on the top and bottoms have been tweaked to grab a little better when the blocks are put together.
+
+Sources have been listed next to their files. 
+
+
+
+## Prior DubloFactory Readme:
+
+
 Copyright (c) 2019 Daniel K. Schneider
 Copyright (c) 2018 Daniel K. Schneider
 Copyright (c) 2017 Daniel K. Schneider and Daniel M. Taub
