@@ -47,11 +47,12 @@ module B() {
     row=0,
     up=0,
     width=2,
-    length=2,
-    height=FULL / 4,
+    length=4,
+    height=FULL/3,
     shave=0.4,
     scale=DOBLO,
-    nibbles_on_off=true
+    nibbles_on_off=false,
+    flat_bottom_on_off=false
   );
 }
 

@@ -57,7 +57,8 @@ module doblo(
   scale = LUGO,
   orientation = 0,
   lattice_type = LATTICE_TYPE,
-  shave = SHAVE
+  shave = SHAVE,
+  flat_bottom_on_off = false
 )
 
 /* Use cases:
@@ -82,35 +83,48 @@ module doblo(
 
       //the doblo
       union() {
-        if (diamonds_on_off && (width > 1 && length > 1)) {
-          difference() {
+        // Use flat bottom if parameter is true or global FLAT_BOTTOM is true
+        flat_bottom = flat_bottom_on_off || FLAT_BOTTOM;
+        if (flat_bottom) {
+          // Flat bottom: only draw the top wall as a thin plate, positioned flat against ground
+          translate([0, 0, -height * PART_HEIGHT(scale) / 2 + DOBLOWALL(scale) / 2])
+            cube([width * PART_WIDTH(scale) - shave, length * PART_WIDTH(scale) - shave, DOBLOWALL(scale)], true);
+        } else {
+          // Normal doblo with full walls
+          if (diamonds_on_off && (width > 1 && length > 1)) {
+            difference() {
+              difference() {
+                // the cube
+                cube([width * PART_WIDTH(scale) - shave, length * PART_WIDTH(scale) - shave, height * PART_HEIGHT(scale)], true);
+                // inner emptiness, a bit smaller and shifted down
+                translate([0, 0, -DOBLOWALL(scale)])
+                  #cube([width * PART_WIDTH(scale) - 2 * DOBLOWALL(scale), length * PART_WIDTH(scale) - 2 * DOBLOWALL(scale), height * PART_HEIGHT(scale)], true);
+              }
+              // diamonds
+              diamonds(width, length, height, scale=scale);
+            }
+          } else {
             difference() {
               // the cube
               cube([width * PART_WIDTH(scale) - shave, length * PART_WIDTH(scale) - shave, height * PART_HEIGHT(scale)], true);
               // inner emptiness, a bit smaller and shifted down
               translate([0, 0, -DOBLOWALL(scale)])
-                #cube([width * PART_WIDTH(scale) - 2 * DOBLOWALL(scale), length * PART_WIDTH(scale) - 2 * DOBLOWALL(scale), height * PART_HEIGHT(scale)], true);
+                cube([width * PART_WIDTH(scale) - 2 * DOBLOWALL(scale), length * PART_WIDTH(scale) - 2 * DOBLOWALL(scale), height * PART_HEIGHT(scale)], true);
             }
-            // diamonds
-            diamonds(width, length, height, scale=scale);
-          }
-        } else {
-          difference() {
-            // the cube
-            cube([width * PART_WIDTH(scale) - shave, length * PART_WIDTH(scale) - shave, height * PART_HEIGHT(scale)], true);
-            // inner emptiness, a bit smaller and shifted down
-            translate([0, 0, -DOBLOWALL(scale)])
-              cube([width * PART_WIDTH(scale) - 2 * DOBLOWALL(scale), length * PART_WIDTH(scale) - 2 * DOBLOWALL(scale), height * PART_HEIGHT(scale)], true);
           }
         }
         // nibbles on top
         if (nibbles_on_off) {
+          // For flat bottom mode, position nibbles on top of the thin plate at bottom
+          // For normal mode, position nibbles at top of full block
+          nibbles_up = flat_bottom ? -height / 2 + DOBLOWALL(scale) / PART_HEIGHT(scale) : height / 2;
           //           (col,  row,      up,       width, length)
-          nibbles(-width / 2, -length / 2, height / 2, width, length, scale=scale);
+          nibbles(-width / 2, -length / 2, nibbles_up, width, length, scale=scale);
         }
 
-        // nibbles underneath - only for Lego or bigger AND if x or y is bigger than 1 
-        if (scale > 0.3) {
+        // nibbles underneath - only for Lego or bigger AND if x or y is bigger than 1
+        // Skip all bottom structures if flat bottom mode is enabled
+        if (!flat_bottom && scale > 0.3) {
           if (width > 1 && length > 1) {
             // big nibbles underneath
             bottom_nibbles(width, length, height, scale=scale);
@@ -138,7 +152,7 @@ module doblo(
               }
               cube([width * PART_WIDTH(scale) - INSET_LENGTH(scale), length * PART_WIDTH(scale) - INSET_LENGTH(scale), height * PART_HEIGHT(scale) + 2], true);
             }
-        } else
+        } else if (!flat_bottom)
         // scale is nano (<0.3). No nibbles
         {
           if (width > 1 && length > 1)
@@ -161,7 +175,9 @@ module nibbles(col = 0, row = 0, up = FULL, width = 1, length = 1, scale = LUGO,
   // echo ("x_start", x_start, "col", col);
   y_start = -(row * PART_WIDTH(scale) + NO(scale));
   // echo ("y_start", y_start, "row", row);
-  z_local = up * PART_HEIGHT(scale) + NH(scale) / 2;
+  // Calculate height reduction to keep bottom aligned when using rounded lip
+  height_reduction = (REDUCE_NIBBLE_HEIGHT_BY_HALF_ROUNDED_TIP_THICKNESS && DUPLO_TOP_NIBBLE_ROUNDED_LIP && scale >= 0.6 && !filled) ? NB_THICKNESS(scale) / 4 : 0;
+  z_local = up * PART_HEIGHT(scale) + NH(scale) / 2 - height_reduction / 2;
   translate([x_start, y_start, z_local]) {
     // 0,0 is left/back corner. Draw to the right (x) and forward (-y)
     for (j = [1:length]) {
@@ -759,14 +775,18 @@ module doblonibble(extra = false, filled = false, heightscale = 1) {
   nb_r = NB_RADIUS(scale) + (extra ? DOBLOWALL(scale) / 2.2 : 0);
   nb_r_i = NB_RADIUS_INSIDE(scale) + (extra ? DOBLOWALL(scale) / 2.2 : 0);
 
+  // Calculate height reduction if enabled
+  height_reduction = (REDUCE_NIBBLE_HEIGHT_BY_HALF_ROUNDED_TIP_THICKNESS && DUPLO_TOP_NIBBLE_ROUNDED_LIP && scale >= 0.6 && !filled) ? NB_THICKNESS(scale) / 4 : 0;
+  cylinder_height = heightscale * NH(scale) - height_reduction;
+
   // Draw the cylinders (unless hidden for debugging)
   if (!TOP_NIBBLE_HIDE) {
     if (scale < 0.6 || filled) {
-      cylinder(r=nb_r, h=heightscale * NH(scale), center=true, $fs=NIBBLE_FS);
+      cylinder(r=nb_r, h=cylinder_height, center=true, $fs=NIBBLE_FS);
     } else {
       difference() {
-        cylinder(r=nb_r, h=heightscale * NH(scale), center=true, $fs=NIBBLE_FS);
-        cylinder(r=nb_r_i, h=heightscale * NH(scale) + 1, center=true, $fs=NIBBLE_FS);
+        cylinder(r=nb_r, h=cylinder_height, center=true, $fs=NIBBLE_FS);
+        cylinder(r=nb_r_i, h=cylinder_height + 1, center=true, $fs=NIBBLE_FS);
       }
     }
   }
@@ -774,7 +794,7 @@ module doblonibble(extra = false, filled = false, heightscale = 1) {
   // Add the rounded lip torus if enabled
   if (DUPLO_TOP_NIBBLE_ROUNDED_LIP && scale >= 0.6 && !filled) {
     torus_thickness = NB_THICKNESS(scale) / 2; // The cross-section radius of the torus
-    torus_z_offset = (heightscale * NH(scale)) / 2 + 0.25 * NB_THICKNESS(scale) - torus_thickness / 2; // Moved up by 0.25 * wall thickness
+    torus_z_offset = cylinder_height / 2 + 0.25 * NB_THICKNESS(scale) - torus_thickness / 2; // Moved up by 0.25 * wall thickness
 
     translate([0, 0, torus_z_offset])
       torus(major_radius=nb_r - torus_thickness, minor_radius=torus_thickness);

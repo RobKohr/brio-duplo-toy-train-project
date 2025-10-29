@@ -1,0 +1,3 @@
+item dimensions are 32x64
+
+Rotate so that it points up/down the plate

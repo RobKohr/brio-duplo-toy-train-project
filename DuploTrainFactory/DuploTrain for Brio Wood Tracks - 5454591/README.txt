@@ -1,0 +1,4 @@
+DuploTrain for Brio Wood Tracks by SteAi on Thingiverse: https://www.thingiverse.com/thing:5454591
+
+Summary:
+Brio wood track compatible train car on bottom, duplo brick compatible on topThis train car is based on the Creation of xtopher88 with some chages to it:wheel pins have been changed from pressfit to a snap in design (no need to drill, no glue to make them stick in)most edges and corners are slightly rounded for more pleasant touchwheel cutouts replaced by a design for better printabilityduplo nipples on top slightly enlarged to fit duplo bricks betterdesign of nipples on top and hooks adapted in model to create more strength in the printprinted with tree supports of Cura 5.1 for the holes and the hook (hook support in model was deactivated for printing and not tested by me)
